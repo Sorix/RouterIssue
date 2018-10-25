@@ -2,19 +2,26 @@ import Vapor
 
 /// Register your application's routes here.
 public func routes(_ router: Router) throws {
-    // Basic "It works" example
-    router.get { req in
-        return "It works!"
-    }
-    
-    // Basic "Hello, world!" example
-    router.get("hello") { req in
-        return "Hello, world!"
-    }
+	let testController = TestController()
+	let testPath = router.grouped("test")
+	
+	// /test/:string
+	testPath.get(String.parameter, use: testController.string)
+	
+	// /test/:int/secondComponent
+	testPath.get(Int.parameter, "secondComponent", use: testController.int)
+}
 
-    // Example of configuring a controller
-    let todoController = TodoController()
-    router.get("todos", use: todoController.index)
-    router.post("todos", use: todoController.create)
-    router.delete("todos", Todo.parameter, use: todoController.delete)
+class TestController {
+	func string(_ req: Request) throws -> Future<Response> {
+		let param = try req.parameters.next(String.self)
+		print("String: \(param)")
+		return try param.encode(for: req)
+	}
+	
+	func int(_ req: Request) throws -> Future<Response> {
+		let param = try req.parameters.next(Int.self)
+		print("Int: \(param)")
+		return try param.encode(for: req)
+	}
 }
